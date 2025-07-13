@@ -11,6 +11,14 @@
         body {
             font-family: 'Open Sans', sans-serif;
             background-color: #FFFFFF; /* Branco Neve */
+            /* Oculta o conteúdo por padrão, será exibido via JS após a senha */
+            visibility: hidden; 
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.authenticated {
+            visibility: visible;
+            opacity: 1;
         }
         h1, h2, h3, .font-montserrat {
             font-family: 'Montserrat', sans-serif;
@@ -113,6 +121,105 @@
 </head>
 <body class="bg-branco-neve text-gray-800 flex min-h-screen">
 
+    <script>
+        // ATENÇÃO: Esta é uma proteção por senha no lado do cliente (client-side).
+        // Isso significa que o código e a senha estão visíveis no código-fonte do HTML.
+        // Não é adequado para proteger informações confidenciais, apenas para evitar acesso casual.
+        const correctPassword = "brandbook";
+        let passwordAttempt = "";
+
+        // Função para exibir um modal de alerta customizado em vez de alert()
+        function showCustomAlert(message, type = 'info') {
+            const alertBox = document.createElement('div');
+            alertBox.style.position = 'fixed';
+            alertBox.style.top = '20%';
+            alertBox.style.left = '50%';
+            alertBox.style.transform = 'translate(-50%, -50%)';
+            alertBox.style.padding = '20px';
+            alertBox.style.borderRadius = '8px';
+            alertBox.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+            alertBox.style.zIndex = '10000';
+            alertBox.style.textAlign = 'center';
+            alertBox.style.color = 'white';
+            alertBox.style.fontWeight = 'bold';
+            alertBox.style.backgroundColor = type === 'error' ? '#E53E3E' : '#356064'; // Red for error, Dermater Blue for info
+
+            const messageText = document.createElement('p');
+            messageText.textContent = message;
+            alertBox.appendChild(messageText);
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'OK';
+            closeButton.style.marginTop = '15px';
+            closeButton.style.padding = '8px 20px';
+            closeButton.style.backgroundColor = 'rgba(255,255,255,0.3)';
+            closeButton.style.border = 'none';
+            closeButton.style.borderRadius = '5px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.style.color = 'white';
+            closeButton.addEventListener('click', () => {
+                document.body.removeChild(alertBox);
+            });
+            alertBox.appendChild(closeButton);
+
+            document.body.appendChild(alertBox);
+        }
+
+        function authenticate() {
+            passwordAttempt = prompt("Por favor, insira a senha para acessar o Brand Book:");
+            if (passwordAttempt === correctPassword) {
+                document.body.classList.add('authenticated');
+                // Remove the prompt message if it was displayed
+                const promptMessage = document.getElementById('prompt-message');
+                if (promptMessage) {
+                    promptMessage.remove();
+                }
+            } else {
+                showCustomAlert("Senha incorreta. Acesso negado.", 'error');
+                // Optionally, redirect or clear content if password is wrong
+                // window.location.href = "about:blank"; // Redireciona para uma página em branco
+                // Ou apenas mantém o conteúdo oculto
+            }
+        }
+
+        // Exibe uma mensagem para o usuário saber que a senha é necessária
+        const initialPromptMessage = document.createElement('div');
+        initialPromptMessage.id = 'prompt-message';
+        initialPromptMessage.style.position = 'fixed';
+        initialPromptMessage.style.top = '0';
+        initialPromptMessage.style.left = '0';
+        initialPromptMessage.style.width = '100%';
+        initialPromptMessage.style.height = '100%';
+        initialPromptMessage.style.backgroundColor = '#f0f4f5'; /* Cinza Azulado Claro */
+        initialPromptMessage.style.display = 'flex';
+        initialPromptMessage.style.flexDirection = 'column';
+        initialPromptMessage.style.justifyContent = 'center';
+        initialPromptMessage.style.alignItems = 'center';
+        initialPromptMessage.style.zIndex = '9999';
+        initialPromptMessage.innerHTML = `
+            <div class="text-center p-8 rounded-lg shadow-lg bg-white">
+                <h2 class="text-2xl font-montserrat font-bold text-azul-dermater mb-4">Acesso Restrito</h2>
+                <p class="text-gray-700 mb-6">Este Brand Book requer uma senha para visualização.</p>
+                <button id="accessButton" class="bg-azul-dermater text-white px-6 py-3 rounded-md font-semibold hover:bg-azul-tecnico transition-colors">
+                    Inserir Senha
+                </button>
+            </div>
+        `;
+        document.body.appendChild(initialPromptMessage);
+
+        document.getElementById('accessButton').addEventListener('click', authenticate);
+
+        // Se o usuário tentar navegar para trás/frente e a senha não estiver autenticada, reautenticar
+        window.addEventListener('popstate', function() {
+            if (!document.body.classList.contains('authenticated')) {
+                // Se a página for recarregada ou navegada e não estiver autenticada, exibe o prompt novamente
+                authenticate();
+            }
+        });
+
+    </script>
+
+    <!-- Sidebar Navigation -->
     <aside class="w-64 bg-white shadow-lg p-6 space-y-2 fixed top-0 left-0 h-full overflow-y-auto">
         <div class="text-center mb-8">
             <h1 class="text-2xl font-montserrat font-bold text-azul-dermater">Dermater®</h1>
@@ -134,8 +241,10 @@
         </nav>
     </aside>
 
+    <!-- Main Content Area -->
     <main class="ml-64 flex-1 p-8 md:p-12 overflow-y-auto">
         
+        <!-- 1. Essência da Marca -->
         <section id="essencia" class="content-section active">
             <h2 class="text-3xl font-montserrat font-bold text-azul-dermater mb-6">1. Essência da Marca</h2>
             <p class="mb-6 text-gray-700">Esta seção define o núcleo da identidade Dermater. O posicionamento, tom de comunicação e pilares visuais são fundamentais para guiar todas as expressões da marca, assegurando consistência e alinhamento com seus valores de sofisticação, ciência e alta performance.</p>
@@ -176,6 +285,7 @@
             </div>
         </section>
 
+        <!-- 2. Logotipo -->
         <section id="logotipo" class="content-section">
             <h2 class="text-3xl font-montserrat font-bold text-azul-dermater mb-6">2. Logotipo</h2>
             <p class="mb-6 text-gray-700">O logotipo Dermater é a assinatura visual principal da marca. Sua construção tipográfica foi cuidadosamente pensada para comunicar os valores centrais da marca: a fusão entre ciência dermatológica e a força de resultados confiáveis. Abaixo, detalhamos sua estrutura e o significado por trás de sua composição.</p>
@@ -198,11 +308,13 @@
             </div>
         </section>
 
+        <!-- 3. Paleta de Cores -->
         <section id="paleta-cores" class="content-section">
             <h2 class="text-3xl font-montserrat font-bold text-azul-dermater mb-6">3. Paleta de Cores Oficial</h2>
             <p class="mb-6 text-gray-700">A paleta de cores Dermater foi selecionada para transmitir sofisticação, confiança e uma conexão com a ciência e a natureza. Cada cor tem uma função específica, contribuindo para uma identidade visual coesa e elegante. Utilize esta seção para consultar os códigos HEX e entender o papel de cada tom.</p>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Cores -->
                 <div class="bg-white p-4 rounded-lg shadow border border-cinza-azulado">
                     <div class="color-swatch bg-azul-dermater rounded-md mx-auto mb-3"></div>
                     <h4 class="font-montserrat font-semibold text-azul-dermater text-center">Azul Profundo Dermater</h4>
